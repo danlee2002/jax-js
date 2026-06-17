@@ -9,7 +9,6 @@
     lax,
     nn,
     numpy as np,
-    profiler,
     tree,
   } from "@jax-js/jax";
   import type { Device } from "@jax-js/jax";
@@ -504,7 +503,6 @@
   }
 
   async function stepOnce(renderAfter = true) {
-    profiler.startTrace();
     if (!loadedModel || !ncaState || stepping) return;
     stepping = true;
     const start = performance.now();
