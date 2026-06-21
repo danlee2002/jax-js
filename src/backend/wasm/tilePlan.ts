@@ -176,6 +176,17 @@ function periodicStride(exp: AluExp, kind: "broadcast" | "contiguous") {
   return { kind, tileSize: Math.min(inner.tileSize, N) };
 }
 
+function addStrides(lhs: StrideResult, rhs: StrideResult): StrideResult {
+  if (lhs.kind === "gather" || rhs.kind === "gather") return { kind: "gather" };
+
+  const tileSize = Math.min(lhs.tileSize, rhs.tileSize);
+  if (lhs.kind === "broadcast") return { kind: rhs.kind, tileSize };
+  if (rhs.kind === "broadcast") return { kind: lhs.kind, tileSize };
+
+  // Adding two contiguous terms produces stride 2, not a contiguous load.
+  return { kind: "gather" };
+}
+
 function analyzeStride(exp: AluExp): StrideResult {
   if (!referencesGidx(exp)) return { kind: "broadcast", tileSize: Infinity };
   if (exp.op === AluOp.Special && exp.arg[0] === "gidx")
@@ -200,10 +211,7 @@ function analyzeStride(exp: AluExp): StrideResult {
   }
 
   if (exp.op === AluOp.Add) {
-    const lhsHasGidx = referencesGidx(exp.src[0]);
-    const rhsHasGidx = referencesGidx(exp.src[1]);
-    if (lhsHasGidx && !rhsHasGidx) return analyzeStride(exp.src[0]);
-    if (!lhsHasGidx && rhsHasGidx) return analyzeStride(exp.src[1]);
+    return addStrides(analyzeStride(exp.src[0]), analyzeStride(exp.src[1]));
   }
 
   return { kind: "gather" };

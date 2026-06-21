@@ -1053,6 +1053,27 @@ export class Array extends Tracer {
       },
       [Primitive.Conv]([x, y], params) {
         checkConvShape(x.shape, y.shape, params);
+
+        // Wasm backend behaves poorly on padded convolutions, so we materialize
+        // it here for better performance.
+        const shouldMaterializePadding =
+          x.#backend.type === "wasm" &&
+          params.lhsDilation.every((d) => d === 1) &&
+          params.padding.some(([left, right]) => left > 0 || right > 0);
+        if (shouldMaterializePadding) {
+          x = x.#reshape(
+            x.#st.padOrShrink([
+              ...rep<Pair>(params.vmapDims + 2, [0, 0]),
+              ...params.padding,
+            ]),
+          );
+          x.#realize();
+          params = {
+            ...params,
+            padding: rep(params.padding.length, [0, 0] as Pair),
+          };
+        }
+
         const [stX, stY] = prepareConv(x.#st, y.#st, params);
         return [
           Array.#naryCustom(

@@ -291,10 +291,7 @@ export function codegenWasm(kernel: Kernel): WasmCodegenResult {
     useSimd && re ? reductionPointerCandidates(tune.exp, expStrides) : [];
   const reductionPointers = re ? reductionPointerCandidates(tune.exp) : [];
   const useKSimdReduction =
-    simdEligible &&
-    re &&
-    hasIdentityEpilogue &&
-    canUseKSimdReduction(tune.exp, re, reductionPointers);
+    simdEligible && re && canUseKSimdReduction(tune.exp, re, reductionPointers);
   const kSimdReductionPointerCandidates =
     useKSimdReduction && re
       ? reductionPointers.map((candidate) => ({
@@ -705,14 +702,21 @@ export function codegenWasm(kernel: Kernel): WasmCodegenResult {
       });
 
       for (let i = 0; i < groups.length; i++) {
-        emitOutputAddress(groups[i].gidx);
-        // Sum all the elements across SIMD accumulator lane in scalar type.
+        const acc = cg.local.declare(cg.f32);
+        // Sum all the elements across SIMD accumulator lanes into the scalar
+        // accumulator expected by the normal reduction epilogue.
         for (let lane = 0; lane < simdLanes; lane++) {
           cg.local.get(vecAccs[i]);
           cg.f32x4.extract_lane(lane);
           if (lane > 0) cg.f32.add();
         }
-        cg.f32.store(Math.log2(byteWidth(kernel.dtype)));
+        cg.local.set(acc);
+        emitOutputAddress(groups[i].gidx);
+        translateExp(cg, funcs, tune.epilogue!, {
+          acc,
+          gidx: groups[i].gidx,
+        });
+        dty(cg, null, kernel.dtype).store(Math.log2(byteWidth(kernel.dtype)));
       }
     };
 
