@@ -18,6 +18,14 @@ export default defineConfig({
   build: {
     // Increase chunk size warning limit for ML libraries.
     chunkSizeWarningLimit: 4000,
+    minify: "esbuild",
+  },
+  esbuild: {
+    // tfjs-backend-wasm serializes Emscripten worker functions with toString().
+    // Syntax minifiers can rewrite `typeof x === "undefined"` guards into direct
+    // references, which breaks threaded SIMD workers:
+    // https://github.com/tensorflow/tfjs/tree/tfjs-v4.22.0/tfjs-backend-wasm#js-minification
+    minifySyntax: false,
   },
   server: {
     headers: {
