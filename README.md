@@ -130,7 +130,7 @@ Here's a quick, high-level comparison with other popular web ML runtimes:
 | Cholesky, Lstsq                 | ✅         | ❌              | ❌                 |
 | LU, Solve, Determinant          | ✅         | ❌              | ❌                 |
 | Eigenvalues, SVD                | ✅         | ❌              | ❌                 |
-| FFT                             | ✅         | ✅              | ✅                 |
+| FFT                             | ✅         | 🟡 Quadratic    | 🟡 Only on CPU     |
 | Basic RNG (Uniform, Normal)     | ✅         | ✅              | ✅                 |
 | Advanced RNG                    | ✅         | ❌              | ❌                 |
 
