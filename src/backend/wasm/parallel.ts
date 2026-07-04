@@ -50,7 +50,7 @@ self.onmessage = (e) => {
       const outputs = msg.outputs.map(({ ptr, size }) =>
         new Uint8Array(memory.buffer, ptr, size)
       );
-      runCpuRoutine(msg.routine, inputs, outputs);
+      __minify_safe_runCpuRoutine(msg.routine, inputs, outputs);
     } else {
       throw new Error("Unknown wasm worker message: " + msg.type);
     }

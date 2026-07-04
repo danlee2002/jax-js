@@ -132,9 +132,9 @@ export function cpuRoutineJSForWorkers(): string {
   return `
 const DType = ${JSON.stringify(DType)};
 const Routines = ${JSON.stringify(Routines)};
-const byteWidth = ${byteWidth.toString()};
-const isFloatDtype = ${isFloatDtype.toString()};
-const dtypedArray = ${dtypedArray.toString()};
+const ${byteWidth.name} = ${byteWidth.toString()};
+const ${isFloatDtype.name} = ${isFloatDtype.toString()};
+const ${dtypedArray.name} = ${dtypedArray.toString()};
 ${runCpuRoutine.toString()}
 ${runSort.toString()}
 ${runArgsort.toString()}
@@ -142,6 +142,7 @@ ${runTriangularSolve.toString()}
 ${runCholesky.toString()}
 ${runLU.toString()}
 ${runJacobiEigh.toString()}
+const __minify_safe_runCpuRoutine = ${runCpuRoutine.name};
 `;
 }
 
